@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dom's YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="card">
+        <h1>Dom's YouTube Downloader</h1>
+        <form id="download-form">
+            <div class="url-row">
+                <input type="text" name="url" id="url-input" placeholder="URL spot" required>
+                <button type="submit" id="submit-btn">Download</button>
+            </div>
+            <div class="quality-row">
+                <button type="button" class="quality-btn" data-value="4k">4K</button>
+                <button type="button" class="quality-btn active" data-value="1080p">1080p</button>
+                <button type="button" class="quality-btn" data-value="720p">720p</button>
+                <button type="button" class="quality-btn" data-value="480p">480p</button>
+                <button type="button" class="quality-btn" data-value="mp3">MP3</button>
+            </div>
+        </form>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        let selectedQuality = "1080p";
+
+        document.querySelectorAll(".quality-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".quality-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                selectedQuality = btn.dataset.value;
+            });
+        });
+
+        document.getElementById("download-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const button = document.getElementById("submit-btn");
+            const status = document.getElementById("status");
+            const url = document.getElementById("url-input").value;
+
+            button.disabled = true;
+            button.textContent = "Downloading...";
+
+            const startResp = await fetch("/start-download", {
+                method: "POST",
+                body: new URLSearchParams({ url: url, quality: selectedQuality })
+            });
+            const { job_id } = await startResp.json();
+
+            const poll = setInterval(async () => {
+                const res = await fetch(`/progress/${job_id}`);
+                const data = await res.json();
+
+                if (data.status === "error") {
+                    clearInterval(poll);
+                    status.textContent = "Error: " + data.error;
+                    button.disabled = false;
+                    button.textContent = "Download";
+                    return;
+                }
+
+                status.textContent = `${data.percent} at ${data.speed} ETA ${data.eta}`;
+
+                if (data.status === "complete") {
+                    clearInterval(poll);
+                    status.textContent = "Finishing up...";
+
+                    const fileResp = await fetch(`/fetch-file/${job_id}`);
+                    const blob = await fileResp.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+
+                    const disposition = fileResp.headers.get("Content-Disposition");
+                    let filename = "video.mp4";
+                    if (disposition && disposition.includes("filename=")) {
+                        filename = disposition.split("filename=")[1].replace(/"/g, "");
+                    }
+
+                    const a = document.createElement("a");
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+
+                    status.textContent = "Download complete!";
+                    button.disabled = false;
+                    button.textContent = "Download";
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
