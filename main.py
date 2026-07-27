@@ -1,3 +1,13 @@
+###########################################################################################
+#? list of all the imports:
+#* - flask: for the web server and routing
+#* - yt_dlp: for downloading videos from YouTube and other sites
+#* - os: for file and path operations
+#* - threading: to run downloads in the background
+#* - uuid: to generate unique job IDs
+#* - tempfile: to create temporary directories for downloads
+#* - shutil: to clean up temporary directories after downloads
+
 from flask import Flask, render_template, request, send_file, jsonify
 import yt_dlp
 import os
@@ -6,9 +16,12 @@ import uuid
 import tempfile
 import shutil
 
+###########################################################################################
+#? create the Flask app and a dictionary to track download jobs
+
 app = Flask(__name__)
 
-jobs = {}  # job_id -> {progress info, temp_dir, filename, status}
+jobs = {}  #! job_id -> {progress info, temp_dir, filename, status}
 
 ###########################################################################################
 #? open the main index page
@@ -148,6 +161,9 @@ def fetch_file(job_id):
         jobs.pop(job_id, None)
 
     return response
+
+###########################################################################################
+#? just a general starter route to run the app
 
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
