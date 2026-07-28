@@ -22,9 +22,7 @@ now, this needs to be downloaded and run locally — instructions below.
 
 ## Setup
 
-1. Clone this repo:
-git clone [https://github.com/yourusername/your-repo-name.git](https://github.com/DomPanza/DomsYTdownloader.git)
-
+1. Clone this repo through the top code option
 
 2. Create and activate a virtual environment:
 python -m venv venv
