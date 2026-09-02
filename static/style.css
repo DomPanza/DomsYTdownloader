@@ -16,7 +16,7 @@ body {
 
 .card {
     background-color: #3a3a3a;
-    border: 3px solid #e50914;
+    border: 3px solid #00ff22;
     border-radius: 30px;
     padding: 50px 60px;
     width: 100%;
@@ -89,7 +89,7 @@ h1 {
 }
 
 .quality-btn.active {
-    background-color: #e50914;
+    background-color: #1eff00;
 }
 
 #status {
